@@ -25,7 +25,7 @@
 
 | Module | Files | Responsibility |
 |---|---|---|
-| Player | `game/player/` | `PlayerInput` (mouse and keys → Command calls; clicks pick ships on the ships layer only), `RtsCamera` (pan, zoom), `Hud` (selection rings, drag box, order warnings). Holds no game state. |
+| Player | `game/player/` | `PlayerInput` (mouse and keys → Command calls; clicks pick ships on the ships layer only), `RtsCamera` (pan, zoom, rotate, follow), `Hud` (selection ring, trajectory line, destination mark, drag box, order warnings; meshes via `HudMeshes`). Holds no game state. |
 | Command | `game/command/` | Fleet command API (`CommandController`): selection, control groups 1–9, group move orders that keep the group's layout, the order delay; relays ship order problems upward. Scene-level, not a ship child. No input, no drawing. |
 | Movement | `game/ship/modules/movement/` | The helm: executing orders, choosing a steer point whose arc stays in the corridor, speed/turn limits (including bend speed and corridor braking), faked RCS (sideways translation, braking assist), arrival and settling, waiting for ships in the way, right of way and giving way (stepping aside), contact speed loss. |
 | Navigator | `game/ship/modules/navigator/` | Destination resolution, heading-aware route planning around obstacles, the corridor around the route, route progress and upkeep (re-planning), guidance for the helm. No speed or turn decisions. |
@@ -139,22 +139,24 @@ Public entry point: `LookoutModule` (`lookout_module.gd`).
 - `receive_order(order: Order)` — executes now; a `MoveOrder` goes to `MovementModule.issue_move_order`. An unknown order kind is an error.
 - Signals `order_rejected(destination)`, `order_failed(destination)`, relayed from Movement.
 - `get_active_destination() -> Variant` — resolved destination of the move order being executed, or null.
+- `get_hull_length() -> float` — longest side of the collider's footprint on the plane; `get_hull_bounds() -> AABB` — the collider's box in the ship's frame (both read by the HUD).
 - `get_debug_info() -> Dictionary` — `{movement, navigator}`, each module's debug snapshot (the debug contract).
 - Order data (`game/ship/orders/`): `Order` (base) and `MoveOrder` (`destination: Vector3`, `resolved_destination`). Command creates, delays and delivers them without knowing what they do.
 
 ## Player layer
 
-Lives in `game/player/`. Talks to Command only (never to ships) and holds no game state.
+Lives in `game/player/`. Calls Command only (never calls ships) and holds no game state. For drawing it reads ships read-only: position, `ShipBase.get_hull_length()` and `get_hull_bounds()`.
 - `PlayerInput` (`player_input.gd`, Node; needs `command` and `camera`): LMB click selects (empty space clears), LMB drag box-selects, Shift adds (click toggles), RMB orders the selection, 1–9 recalls a control group, Ctrl+1–9 assigns, Shift+1–9 adds the selection. Picks ships by ray, boxes by unprojecting registered ships, ground points on y = 0. Signal `box_changed(rect, visible)`. `HELP` is the bindings text.
-- `RtsCamera` (`rts_camera.gd`, Camera3D): angled top-down; WASD/arrows pan, wheel zooms.
-- `Hud` (`hud.gd`, Node3D; needs `command`, optionally `input`): selection rings, the drag box, and order warnings from Command's `order_rejected`/`order_failed`. Visual sizes and colours are exports.
+- `RtsCamera` (`rts_camera.gd`, Camera3D; optional `command`): orbits `focus` (the ground point at the screen centre) at `pitch_deg` (45°) and `yaw`. WASD/arrows pan relative to the view, wheel zooms, Q/E and MMB drag rotate around the focus. F toggles follow: the focus eases to the centre of the selection; panning or an empty selection turns it off. Public `pan_by`, `rotate_by`, `set_follow`, `is_following`.
+- `Hud` (`hud.gd`, Node3D; needs `command`, optionally `input`): per selected ship, world meshes of fixed world size on a plane just under the hull's bottom (`plane_offset`): a selection ring (diameter `ring_hull_ratio` × hull length), a straight trajectory line toward `CommandController.get_order_destination`, and the destination mark (inner ring and an outer arc facing back toward the ship), separated by `gap`. One neutral translucent colour (`hud_color`). Screen space: the drag box and order warnings from Command's `order_rejected`/`order_failed`. Visual sizes and colours are exports.
+- `HudMeshes` (`hud_meshes.gd`, scene-free): flat `ring`, `arc` and `strip` triangles on an `ImmediateMesh`, sizes in world units.
 
 ## Command module
 
 `CommandController` (`command_controller.gd`, Node) is the Command layer's API; it does no input and no drawing.
 - Ships: `register_ship(ship)`, `get_ships()`.
 - Selection: `selected()`, `select(ships)`, `add`, `toggle`, `clear`; control groups `assign_group(n)`, `add_selection_to_group(n)`, `recall_group(n)`. Signal `selection_changed(ships)` whenever the selection may have changed.
-- Orders: `order_selection(target)` calls `order_ship(ship, slot)` per selected ship. `order_ship` builds a `MoveOrder`, checks it at once with `ShipBase.check_order` (an unreachable order is rejected immediately), holds it for `CommandProfile.order_delay`, then delivers it with `ShipBase.receive_order`. Meanwhile the ship keeps executing its previous order; a newer order replaces the waiting one and restarts the delay. `get_pending_destination(ship)` returns the waiting order's resolved destination or null.
+- Orders: `order_selection(target)` calls `order_ship(ship, slot)` per selected ship. `order_ship` builds a `MoveOrder`, checks it at once with `ShipBase.check_order` (an unreachable order is rejected immediately), holds it for `CommandProfile.order_delay`, then delivers it with `ShipBase.receive_order`. Meanwhile the ship keeps executing its previous order; a newer order replaces the waiting one and restarts the delay. `get_pending_destination(ship)` returns the waiting order's resolved destination or null; `get_order_destination(ship)` returns the newest one (waiting, else the ship's active destination, else null).
 - News up: signals `order_rejected(ship, destination)` and `order_failed(ship, destination)` relay each registered ship's signals.
 - Tuning: `profile: CommandProfile` (default `orders/default_command.tres`).
 

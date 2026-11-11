@@ -44,6 +44,21 @@ func get_active_destination() -> Variant:
 	return movement.get_active_destination()
 
 
+## Hull length (u): the longest side of the collider's footprint on the plane. 0 without one.
+func get_hull_length() -> float:
+	var size := get_hull_bounds().size
+	return maxf(size.x, size.z)
+
+
+## The collider's bounding box in the ship's local frame (empty without a collider).
+func get_hull_bounds() -> AABB:
+	for child in get_children():
+		if child is CollisionShape3D and (child as CollisionShape3D).shape != null:
+			var shape := child as CollisionShape3D
+			return shape.transform * shape.shape.get_debug_mesh().get_aabb()
+	return AABB()
+
+
 ## Debug snapshot per module, for Presentation. Not part of the gameplay contract.
 func get_debug_info() -> Dictionary:
 	return {"movement": movement.get_debug_info(), "navigator": navigator.get_debug_info()}

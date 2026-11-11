@@ -5,13 +5,14 @@ extends Node
 ##   Shift + click / drag: add to the selection (click toggles).
 ##   RMB: order the selection; each ship keeps its offset from the group centre.
 ##   1-9: select control group. Ctrl + 1-9: assign. Shift + 1-9: add the selection to it.
-## Camera panning and zoom belong to RtsCamera.
+## Camera panning, zoom, rotation and follow belong to RtsCamera.
 
 ## The drag box changed (screen rect); the HUD draws it.
 signal box_changed(rect: Rect2, visible: bool)
 
 const HELP := "LMB select / drag box (Shift adds)   RMB move   " \
-		+ "1-9 group (Ctrl assign, Shift add)   WASD pan   wheel zoom   F4 debug"
+		+ "1-9 group (Ctrl assign, Shift add)   WASD pan   wheel zoom   " \
+		+ "Q/E or MMB rotate   F follow   F4 debug"
 
 @export var command: CommandController
 ## Camera used to pick ships and points on the plane.
