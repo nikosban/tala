@@ -1,7 +1,7 @@
 extends Node3D
-## Movement sandbox (project main scene). Composition only: builds the world (obstacles, grid),
+## Movement sandbox (project main scene). Composition only: builds the world (obstacles),
 ## the ships, Command (CommandController), the Player layer (PlayerInput, RtsCamera, Hud) and
-## DebugTools (all debug visuals, toggled with F4).
+## DebugTools (all debug visuals, including the grid and info line, toggled with F4).
 
 const FRIGATE := preload("res://game/ship/classes/frigate/frigate.tscn")
 const OBSTACLE := preload("res://game/world/obstacles/obstacle.tscn")
@@ -51,25 +51,3 @@ func _ready() -> void:
 	_hud.input = _input
 	add_child(_hud)
 	_command.select([_ships[0]])
-	_draw_grid()
-
-
-func _draw_grid() -> void:
-	var grid := ImmediateMesh.new()
-	var material := StandardMaterial3D.new()
-	material.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
-	material.albedo_color = Color(0.25, 0.3, 0.4)
-	grid.surface_begin(Mesh.PRIMITIVE_LINES, material)
-	var extent := 3000.0
-	var step := 100.0
-	var x := -extent
-	while x <= extent:
-		grid.surface_add_vertex(Vector3(x, -1, -extent))
-		grid.surface_add_vertex(Vector3(x, -1, extent))
-		grid.surface_add_vertex(Vector3(-extent, -1, x))
-		grid.surface_add_vertex(Vector3(extent, -1, x))
-		x += step
-	grid.surface_end()
-	var instance := MeshInstance3D.new()
-	instance.mesh = grid
-	add_child(instance)

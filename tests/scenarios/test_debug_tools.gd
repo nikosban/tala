@@ -1,6 +1,6 @@
 extends RefCounted
-## Scene tests for DebugTools: hidden at start, F4 toggles every debug visual, markers follow
-## the active order, and visuals of a freed ship are removed.
+## Scene tests for DebugTools: hidden at start, F4 toggles every debug visual (including the
+## grid and info line), markers follow the active order, and visuals of a freed ship are removed.
 
 const FRIGATE := preload("res://game/ship/classes/frigate/frigate.tscn")
 
@@ -19,7 +19,7 @@ func _f4() -> InputEventKey:
 	return event
 
 
-func _setup(world: Node3D) -> Array:
+func _setup(world: Node3D, track: bool = true) -> Array:
 	var command := CommandController.new()
 	world.add_child(command)
 	var debug := DebugTools.new()
@@ -29,7 +29,8 @@ func _setup(world: Node3D) -> Array:
 	world.add_child(ship)
 	ship.movement.reset_motion(Vector3.ZERO, 0.0, 0.0)
 	command.register_ship(ship)
-	debug.track_ship(ship)
+	if track:
+		debug.track_ship(ship)
 	return [debug, ship, command]
 
 
@@ -39,12 +40,13 @@ func test_hidden_at_start_and_f4_toggles(t: TestContext) -> void:
 	var debug: DebugTools = parts[0]
 	var layers: Node3D = debug.get_node("Layers")
 	t.check(not debug.is_enabled(), "debug starts disabled")
-	t.check(not layers.is_visible_in_tree(), "debug visuals hidden at start")
-	t.check(layers.get_child_count() == 3, "overlay and two markers per ship (got %d)" % layers.get_child_count())
+	var canvas: CanvasLayer = layers.get_children().filter(func(n: Node) -> bool: return n is CanvasLayer)[0]
+	t.check(layers.has_node("Grid"), "grid belongs to debug tools")
+	t.check(not layers.is_visible_in_tree() and not canvas.visible, "debug visuals and info line hidden at start")
 	debug._unhandled_input(_f4())
-	t.check(debug.is_enabled() and layers.is_visible_in_tree(), "F4 shows debug visuals")
+	t.check(debug.is_enabled() and layers.is_visible_in_tree() and canvas.visible, "F4 shows debug visuals and info line")
 	debug._unhandled_input(_f4())
-	t.check(not debug.is_enabled() and not layers.is_visible_in_tree(), "F4 again hides them")
+	t.check(not debug.is_enabled() and not layers.is_visible_in_tree() and not canvas.visible, "F4 again hides them")
 	world.queue_free()
 
 
@@ -59,7 +61,9 @@ func test_active_marker_follows_order(t: TestContext) -> void:
 	for i in 5:
 		await t.tree.physics_frame
 	await t.tree.process_frame
-	var active: MeshInstance3D = debug.get_node("Layers").get_child(1)
+	var layers := debug.get_node("Layers")
+	# Each tracked ship appends [overlay, active, pending].
+	var active: MeshInstance3D = layers.get_child(layers.get_child_count() - 2)
 	t.check(active.visible, "active marker shown while an order is active")
 	t.check(active.global_position.distance_to(destination) < 0.01, "active marker at the destination")
 	world.queue_free()
@@ -67,11 +71,15 @@ func test_active_marker_follows_order(t: TestContext) -> void:
 
 func test_freed_ship_visuals_removed(t: TestContext) -> void:
 	var world: Node3D = await _world(t)
-	var parts := _setup(world)
+	var parts := _setup(world, false)
 	var debug: DebugTools = parts[0]
 	var ship: ShipBase = parts[1]
+	var layers := debug.get_node("Layers")
+	var base := layers.get_child_count()
+	debug.track_ship(ship)
+	t.check(layers.get_child_count() == base + 3, "overlay and two markers per ship")
 	ship.free()
 	await t.tree.process_frame
 	await t.tree.process_frame
-	t.check(debug.get_node("Layers").get_child_count() == 0, "visuals of a freed ship are removed")
+	t.check(layers.get_child_count() == base, "visuals of a freed ship are removed")
 	world.queue_free()
