@@ -38,6 +38,7 @@ func _ready() -> void:
 	_input.command = _command
 	_input.camera = _camera
 	add_child(_input)
+	_camera.command = _command
 	_debug.command = _command
 	add_child(_debug)
 	for point in spawn_points:

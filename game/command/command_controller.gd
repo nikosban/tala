@@ -103,6 +103,13 @@ func get_pending_destination(ship: ShipBase) -> Variant:
 	return order.resolved_destination if order != null else null
 
 
+## The ship's newest move destination: the waiting order's if any, else the one it executes,
+## else null.
+func get_order_destination(ship: ShipBase) -> Variant:
+	var pending: Variant = get_pending_destination(ship)
+	return pending if pending != null else ship.get_active_destination()
+
+
 func _physics_process(delta: float) -> void:
 	delays.prune()
 	for due in delays.tick(delta):
