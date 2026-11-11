@@ -1,0 +1,13 @@
+[gd_scene format=3]
+
+[sub_resource type="StandardMaterial3D" id="Material_marker"]
+shading_mode = 0
+albedo_color = Color(0.3, 1, 0.4, 1)
+
+[sub_resource type="TorusMesh" id="TorusMesh_marker"]
+material = SubResource("Material_marker")
+inner_radius = 2.5
+outer_radius = 3.5
+
+[node name="DestinationMarker" type="MeshInstance3D"]
+mesh = SubResource("TorusMesh_marker")

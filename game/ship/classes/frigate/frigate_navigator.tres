@@ -1,0 +1,11 @@
+[gd_resource type="Resource" script_class="NavigatorProfile" format=3]
+
+[ext_resource type="Script" path="res://game/ship/modules/navigator/navigator_profile.gd" id="1_profile"]
+
+[resource]
+script = ExtResource("1_profile")
+obstacle_margin = 5.0
+max_destination_displacement = 30.0
+route_check_interval = 0.5
+steer_lookahead = 8.0
+corridor_half_width = 40.0

@@ -1,0 +1,11 @@
+[gd_resource type="Resource" script_class="MovementFeelTargets" format=3]
+
+[ext_resource type="Script" path="res://game/ship/modules/movement/movement_feel_targets.gd" id="1_targets"]
+
+[resource]
+script = ExtResource("1_targets")
+hull_length = 20.0
+rest_to_top_speed_s = 5.0
+stop_distance_hull_lengths = 16.0
+quarter_turn_at_rest_s = 12.0
+tolerance_fraction = 0.15

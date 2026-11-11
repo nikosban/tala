@@ -1,0 +1,25 @@
+[gd_resource type="Resource" script_class="MovementProfile" format=3 uid="uid://djucgttj7blh5"]
+
+[ext_resource type="Script" uid="uid://idxkndoftxib" path="res://game/ship/modules/movement/movement_profile.gd" id="1_profile"]
+
+[sub_resource type="Curve" id="Curve_turn"]
+_limits = [0.0, 30.0, 0.0, 1.0]
+_data = [Vector2(0, 7.5), 0.0, -4.5, 0, 1, Vector2(1, 3), -4.5, 0.0, 1, 0]
+point_count = 2
+
+[sub_resource type="Curve" id="Curve_rcs"]
+_limits = [0.0, 1.0, 0.0, 1.0]
+_data = [Vector2(0, 1), 0.0, -10.0, 0, 1, Vector2(0.1, 0), -10.0, 0.0, 1, 0, Vector2(1, 0), 0.0, 0.0, 0, 0]
+point_count = 3
+
+[resource]
+script = ExtResource("1_profile")
+top_speed = 20.0
+acceleration = 4.0
+turn_rate_curve = SubResource("Curve_turn")
+rcs_authority_curve = SubResource("Curve_rcs")
+rcs_acceleration = 0.5
+rcs_max_speed = 4.0
+rcs_braking = 0.3
+give_way_margin = 5.0
+give_way_retry_interval = 1.0

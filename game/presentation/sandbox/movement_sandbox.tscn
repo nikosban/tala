@@ -1,0 +1,22 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://game/presentation/sandbox/sandbox_controller.gd" id="1_controller"]
+[ext_resource type="Script" path="res://game/player/rts_camera.gd" id="2_camera"]
+
+[sub_resource type="Environment" id="Environment_space"]
+background_mode = 1
+background_color = Color(0.03, 0.035, 0.06, 1)
+ambient_light_source = 2
+ambient_light_color = Color(0.4, 0.42, 0.5, 1)
+
+[node name="MovementSandbox" type="Node3D"]
+script = ExtResource("1_controller")
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="."]
+environment = SubResource("Environment_space")
+
+[node name="Sun" type="DirectionalLight3D" parent="."]
+transform = Transform3D(0.866, -0.354, 0.354, 0, 0.707, 0.707, -0.5, -0.612, 0.612, 0, 100, 0)
+
+[node name="Camera" type="Camera3D" parent="."]
+script = ExtResource("2_camera")
