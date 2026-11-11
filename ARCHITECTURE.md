@@ -10,7 +10,7 @@
   - `game/command/` — Command layer: `command_controller.gd` (the layer's API), `fleet/` (selection, groups, group slots), `orders/` (order delay and its tuning).
   - `game/ship/` — Ship layer: `ship_base.gd`/`.tscn` (the ship's API), `orders/` (order data), `modules/` (movement, navigator, lookout), `classes/<class>/` (one folder per ship class: scene and profiles).
   - `game/world/` — World layer: `obstacles/`.
-  - `game/presentation/` — Presentation layer (reads only): `debug/` (overlays, markers), `sandbox/` (debug main scene).
+  - `game/presentation/` — Presentation layer (reads only): `debug/` (`DebugTools`: overlays, markers; F4 toggle), `sandbox/` (debug main scene).
 - `tests` — headless tests (`unit/`, `scenarios/`)
 
 ## Units and scale
@@ -32,8 +32,8 @@
 | Lookout | `game/ship/modules/lookout/` | All sensing: known obstacles, the ship in the way, free distance to ships and obstacles. Measures only; no decisions, no tuning. |
 | Obstacles | `game/world/obstacles/` | `Obstacle` (`obstacle.gd`/`.tscn`): round StaticBody3D on layer 2, group `obstacles`; owns its body and `radius` only. |
 | Ships | `game/ship/` | `ship_base.tscn`/`ship_base.gd`: CharacterBody3D base every ship inherits and the ship's public API (see Ship API), with `Movement`, `Navigator` and `Lookout` children. Order data (`Order`, `MoveOrder`) in `orders/`. Ship classes are inherited scenes that set only profiles, mesh and collider, each in its own folder with its profiles (`classes/frigate/`). |
-| Debug | `game/presentation/debug/` | Per-ship debug overlay (route, corridor width limit, chosen steer arc, keep-out circles, give-way point) and destination markers. Reads only. |
-| Sandbox | `game/presentation/sandbox/` | Debug main scene, composition only: builds obstacles, grid, ships, Command, the Player layer and debug presentation. Not gameplay. |
+| Debug | `game/presentation/debug/` | `DebugTools` (`debug_tools.gd`, Node3D; optional `command`): owns every debug visual and toggles them all with F4 (hidden at start). `track_ship(ship)` adds the ship's overlay (`movement_debug_draw.gd`: route, corridor width limit, chosen steer arc, give-way point, state label; the first tracked ship also draws the obstacle keep-out circles) and its active (green) and pending (yellow) destination markers; visuals of freed ships are removed. Handles only its own toggle key. Reads only: `ShipBase.get_debug_info()`, `get_active_destination()`, `CommandController.get_pending_destination()`. |
+| Sandbox | `game/presentation/sandbox/` | Debug main scene, composition only: builds obstacles, grid, ships, Command, the Player layer and `DebugTools`. Not gameplay. |
 | Tests | `tests/` | Headless runner, unit tests, scenarios. |
 
 ## Dependencies

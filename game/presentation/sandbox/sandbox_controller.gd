@@ -1,12 +1,10 @@
 extends Node3D
 ## Movement sandbox (project main scene). Composition only: builds the world (obstacles, grid),
 ## the ships, Command (CommandController), the Player layer (PlayerInput, RtsCamera, Hud) and
-## debug presentation: overlays plus active (green) and pending (yellow) destination markers.
+## DebugTools (all debug visuals, toggled with F4).
 
 const FRIGATE := preload("res://game/ship/classes/frigate/frigate.tscn")
 const OBSTACLE := preload("res://game/world/obstacles/obstacle.tscn")
-const MARKER := preload("res://game/presentation/debug/destination_marker.tscn")
-const DEBUG_DRAW := preload("res://game/presentation/debug/movement_debug_draw.gd")
 
 @export var spawn_points: Array[Vector3] = [
 	Vector3(-80, 0, 0), Vector3(0, 0, 0), Vector3(80, 0, 0),
@@ -27,7 +25,7 @@ var _ships: Array[ShipBase] = []
 var _command := CommandController.new()
 var _input := PlayerInput.new()
 var _hud := Hud.new()
-var _markers := {}  # ShipBase -> [active marker, pending marker]
+var _debug := DebugTools.new()
 
 
 func _ready() -> void:
@@ -40,45 +38,20 @@ func _ready() -> void:
 	_input.command = _command
 	_input.camera = _camera
 	add_child(_input)
-	var first := true
+	_debug.command = _command
+	add_child(_debug)
 	for point in spawn_points:
 		var ship: ShipBase = FRIGATE.instantiate()
 		ship.position = point
 		add_child(ship)
 		_ships.append(ship)
 		_command.register_ship(ship)
-		var overlay := DEBUG_DRAW.new()
-		overlay.ship = ship
-		overlay.draw_clearance = first
-		first = false
-		add_child(overlay)
-		var active: MeshInstance3D = MARKER.instantiate()
-		var pending: MeshInstance3D = MARKER.instantiate()
-		var pending_material := StandardMaterial3D.new()
-		pending_material.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
-		pending_material.albedo_color = Color(1.0, 0.85, 0.2)
-		pending.material_override = pending_material
-		add_child(active)
-		add_child(pending)
-		_markers[ship] = [active, pending]
+		_debug.track_ship(ship)
 	_hud.command = _command
 	_hud.input = _input
 	add_child(_hud)
 	_command.select([_ships[0]])
 	_draw_grid()
-
-
-func _process(_delta: float) -> void:
-	for ship: ShipBase in _ships:
-		var pair: Array = _markers[ship]
-		_place_marker(pair[0], ship.get_active_destination())
-		_place_marker(pair[1], _command.get_pending_destination(ship))
-
-
-func _place_marker(marker: MeshInstance3D, destination: Variant) -> void:
-	marker.visible = destination != null
-	if destination != null:
-		marker.global_position = destination
 
 
 func _draw_grid() -> void:

@@ -11,7 +11,7 @@ extends Node
 signal box_changed(rect: Rect2, visible: bool)
 
 const HELP := "LMB select / drag box (Shift adds)   RMB move   " \
-		+ "1-9 group (Ctrl assign, Shift add)   WASD pan   wheel zoom"
+		+ "1-9 group (Ctrl assign, Shift add)   WASD pan   wheel zoom   F4 debug"
 
 @export var command: CommandController
 ## Camera used to pick ships and points on the plane.
