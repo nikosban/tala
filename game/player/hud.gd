@@ -1,7 +1,8 @@
 class_name Hud
 extends Node3D
-## Player HUD: selection rings under selected ships, the drag box, the help and selection line,
-## and order warnings. Reads Command (and PlayerInput's box); never changes game state.
+## Player HUD: selection rings under selected ships, the drag box and order warnings.
+## The selection and key-bindings info line belongs to DebugTools (F4).
+## Reads Command (and PlayerInput's box); never changes game state.
 
 @export var command: CommandController
 @export var input: PlayerInput
@@ -16,7 +17,6 @@ extends Node3D
 var _rings := MeshInstance3D.new()
 var _ring_mesh := ImmediateMesh.new()
 var _box := ColorRect.new()
-var _help := Label.new()
 var _warning := Label.new()
 var _warning_left := 0.0
 
@@ -35,8 +35,6 @@ func _ready() -> void:
 	_box.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_box.visible = false
 	layer.add_child(_box)
-	_help.position = Vector2(12, 10)
-	layer.add_child(_help)
 	_warning.position = Vector2(12, 40)
 	_warning.add_theme_color_override(&"font_color", warning_color)
 	_warning.visible = false
@@ -44,10 +42,8 @@ func _ready() -> void:
 	if input != null:
 		input.box_changed.connect(_on_box_changed)
 	if command != null:
-		command.selection_changed.connect(_on_selection_changed)
 		command.order_rejected.connect(_warn.bind("rejected: no free spot or route"))
 		command.order_failed.connect(_warn.bind("failed: route blocked, no way through"))
-		_on_selection_changed(command.selected())
 
 
 func _process(delta: float) -> void:
@@ -80,14 +76,6 @@ func _on_box_changed(rect: Rect2, visible_now: bool) -> void:
 	_box.position = rect.position
 	_box.size = rect.size
 	_box.visible = visible_now
-
-
-func _on_selection_changed(ships: Array[Object]) -> void:
-	var names := PackedStringArray()
-	for ship in ships:
-		names.append((ship as Node).name)
-	var selected := ", ".join(names) if not names.is_empty() else "none"
-	_help.text = "Selected: %s   |   %s" % [selected, PlayerInput.HELP]
 
 
 func _warn(ship: ShipBase, _destination: Vector3, reason: String) -> void:

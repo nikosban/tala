@@ -10,7 +10,7 @@
   - `game/command/` — Command layer: `command_controller.gd` (the layer's API), `fleet/` (selection, groups, group slots), `orders/` (order delay and its tuning).
   - `game/ship/` — Ship layer: `ship_base.gd`/`.tscn` (the ship's API), `orders/` (order data), `modules/` (movement, navigator, lookout), `classes/<class>/` (one folder per ship class: scene and profiles).
   - `game/world/` — World layer: `obstacles/`.
-  - `game/presentation/` — Presentation layer (reads only): `debug/` (overlays, markers), `sandbox/` (debug main scene).
+  - `game/presentation/` — Presentation layer (reads only): `debug/` (`DebugTools`: overlays, markers; F4 toggle), `sandbox/` (debug main scene).
 - `tests` — headless tests (`unit/`, `scenarios/`)
 
 ## Units and scale
@@ -25,15 +25,15 @@
 
 | Module | Files | Responsibility |
 |---|---|---|
-| Player | `game/player/` | `PlayerInput` (mouse and keys → Command calls; clicks pick ships on the ships layer only), `RtsCamera` (pan, zoom), `Hud` (selection rings, drag box, help and selection line, order warnings). Holds no game state. |
+| Player | `game/player/` | `PlayerInput` (mouse and keys → Command calls; clicks pick ships on the ships layer only), `RtsCamera` (pan, zoom), `Hud` (selection rings, drag box, order warnings). Holds no game state. |
 | Command | `game/command/` | Fleet command API (`CommandController`): selection, control groups 1–9, group move orders that keep the group's layout, the order delay; relays ship order problems upward. Scene-level, not a ship child. No input, no drawing. |
 | Movement | `game/ship/modules/movement/` | The helm: executing orders, choosing a steer point whose arc stays in the corridor, speed/turn limits (including bend speed and corridor braking), faked RCS (sideways translation, braking assist), arrival and settling, waiting for ships in the way, right of way and giving way (stepping aside), contact speed loss. |
 | Navigator | `game/ship/modules/navigator/` | Destination resolution, heading-aware route planning around obstacles, the corridor around the route, route progress and upkeep (re-planning), guidance for the helm. No speed or turn decisions. |
 | Lookout | `game/ship/modules/lookout/` | All sensing: known obstacles, the ship in the way, free distance to ships and obstacles. Measures only; no decisions, no tuning. |
 | Obstacles | `game/world/obstacles/` | `Obstacle` (`obstacle.gd`/`.tscn`): round StaticBody3D on layer 2, group `obstacles`; owns its body and `radius` only. |
 | Ships | `game/ship/` | `ship_base.tscn`/`ship_base.gd`: CharacterBody3D base every ship inherits and the ship's public API (see Ship API), with `Movement`, `Navigator` and `Lookout` children. Order data (`Order`, `MoveOrder`) in `orders/`. Ship classes are inherited scenes that set only profiles, mesh and collider, each in its own folder with its profiles (`classes/frigate/`). |
-| Debug | `game/presentation/debug/` | Per-ship debug overlay (route, corridor width limit, chosen steer arc, keep-out circles, give-way point) and destination markers. Reads only. |
-| Sandbox | `game/presentation/sandbox/` | Debug main scene, composition only: builds obstacles, grid, ships, Command, the Player layer and debug presentation. Not gameplay. |
+| Debug | `game/presentation/debug/` | `DebugTools` (`debug_tools.gd`, Node3D; optional `command`): owns every debug visual and toggles them all with F4 (hidden at start): the reference grid, the info line (selection and key bindings, `PlayerInput.HELP`), and per ship via `track_ship(ship)` adds the ship's overlay (`movement_debug_draw.gd`: route, corridor width limit, chosen steer arc, give-way point, state label; the first tracked ship also draws the obstacle keep-out circles) and its active (green) and pending (yellow) destination markers; visuals of freed ships are removed. Handles only its own toggle key. Reads only: `ShipBase.get_debug_info()`, `get_active_destination()`, `CommandController` (selection, `get_pending_destination()`). |
+| Sandbox | `game/presentation/sandbox/` | Debug main scene, composition only: builds obstacles, ships, Command, the Player layer and `DebugTools`. Not gameplay. |
 | Tests | `tests/` | Headless runner, unit tests, scenarios. |
 
 ## Dependencies
@@ -147,7 +147,7 @@ Public entry point: `LookoutModule` (`lookout_module.gd`).
 Lives in `game/player/`. Talks to Command only (never to ships) and holds no game state.
 - `PlayerInput` (`player_input.gd`, Node; needs `command` and `camera`): LMB click selects (empty space clears), LMB drag box-selects, Shift adds (click toggles), RMB orders the selection, 1–9 recalls a control group, Ctrl+1–9 assigns, Shift+1–9 adds the selection. Picks ships by ray, boxes by unprojecting registered ships, ground points on y = 0. Signal `box_changed(rect, visible)`. `HELP` is the bindings text.
 - `RtsCamera` (`rts_camera.gd`, Camera3D): angled top-down; WASD/arrows pan, wheel zooms.
-- `Hud` (`hud.gd`, Node3D; needs `command`, optionally `input`): selection rings, the drag box, the help and selection line, and order warnings from Command's `order_rejected`/`order_failed`. Visual sizes and colours are exports.
+- `Hud` (`hud.gd`, Node3D; needs `command`, optionally `input`): selection rings, the drag box, and order warnings from Command's `order_rejected`/`order_failed`. Visual sizes and colours are exports.
 
 ## Command module
 
