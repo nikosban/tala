@@ -18,6 +18,8 @@ const HELP := "LMB select / drag box (Shift adds)   RMB move   " \
 @export var camera: Camera3D
 ## Mouse travel (px) beyond which a left drag is a box selection rather than a click.
 @export var drag_threshold_px := 6.0
+## Physics layers a click picks ships on (layer 1 "ships"), so obstacles never block a pick.
+@export_flags_3d_physics var pick_mask := 1
 
 var _drag_start := Vector2.ZERO
 var _dragging := false
@@ -98,6 +100,7 @@ func _mouse_on_plane(screen: Vector2) -> Variant:
 
 func _ship_at(screen: Vector2) -> ShipBase:
 	var origin := camera.project_ray_origin(screen)
-	var query := PhysicsRayQueryParameters3D.create(origin, origin + camera.project_ray_normal(screen) * camera.far)
+	var query := PhysicsRayQueryParameters3D.create(origin,
+			origin + camera.project_ray_normal(screen) * camera.far, pick_mask)
 	var hit := camera.get_world_3d().direct_space_state.intersect_ray(query)
 	return hit.get("collider") as ShipBase if not hit.is_empty() else null

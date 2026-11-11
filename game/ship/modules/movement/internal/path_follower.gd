@@ -295,7 +295,8 @@ static func give_way_step(m: MotionState, profile: MovementProfile, point: Vecto
 	var room := to_point.length() - profile.arrival_tolerance * 0.5
 	if not is_inf(free_distance):
 		room = minf(room, free_distance - profile.traffic_stop_margin)
-	var cap := rcs_authority(profile, n.speed) 			* minf(profile.rcs_max_speed, sqrt(2.0 * profile.rcs_acceleration * maxf(room, 0.0)))
+	var cap := rcs_authority(profile, n.speed) \
+			* minf(profile.rcs_max_speed, sqrt(2.0 * profile.rcs_acceleration * maxf(room, 0.0)))
 	var desired := to_point.normalized() * cap if to_point.length() > EPSILON else Vector2.ZERO
 	n.rcs_velocity = n.rcs_velocity.move_toward(desired, profile.rcs_acceleration * dt)
 	n.position += n.velocity() * dt

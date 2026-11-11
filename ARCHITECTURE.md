@@ -25,7 +25,7 @@
 
 | Module | Files | Responsibility |
 |---|---|---|
-| Player | `game/player/` | `PlayerInput` (mouse and keys → Command calls), `RtsCamera` (pan, zoom), `Hud` (selection rings, drag box, help and selection line, order warnings). Holds no game state. |
+| Player | `game/player/` | `PlayerInput` (mouse and keys → Command calls; clicks pick ships on the ships layer only), `RtsCamera` (pan, zoom), `Hud` (selection rings, drag box, help and selection line, order warnings). Holds no game state. |
 | Command | `game/command/` | Fleet command API (`CommandController`): selection, control groups 1–9, group move orders that keep the group's layout, the order delay; relays ship order problems upward. Scene-level, not a ship child. No input, no drawing. |
 | Movement | `game/ship/modules/movement/` | The helm: executing orders, choosing a steer point whose arc stays in the corridor, speed/turn limits (including bend speed and corridor braking), faked RCS (sideways translation, braking assist), arrival and settling, waiting for ships in the way, right of way and giving way (stepping aside), contact speed loss. |
 | Navigator | `game/ship/modules/navigator/` | Destination resolution, heading-aware route planning around obstacles, the corridor around the route, route progress and upkeep (re-planning), guidance for the helm. No speed or turn decisions. |
@@ -100,7 +100,7 @@ Public entry point: `NavigatorModule` (`navigator_module.gd`). Plane coordinates
 - `profile: NavigatorProfile` — tuning asset.
 - `resolve_destination(from, goal) -> Variant` — returns the goal; or, if the goal lies inside an obstacle's clearance, the nearest free spot within `max_destination_displacement`; or `null` if there is no such spot or no route from `from`.
 - `start_route(from, goal, travel_direction, turn_radius) -> bool`
-- `update(dt, position, travel_direction, turn_radius) -> Guidance` — returns null and emits `route_failed` when the route is blocked and no new route exists.
+- `update(dt, position, travel_direction, turn_radius) -> Guidance` — returns null when the route is blocked and no new route exists (Movement then fails the order).
 - `clear_route()`, `get_clearance()`.
 - `get_debug_info()` — debug snapshot (world coordinates): `route`, `corridor_half_width`, `clearance`, `keep_out` (obstacle circles grown by the clearance). Not part of the gameplay contract.
 - `Guidance` (`guidance.gd`):

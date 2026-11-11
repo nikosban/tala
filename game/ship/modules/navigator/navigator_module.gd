@@ -5,9 +5,6 @@ extends Node
 ## Lookout. Must be a direct child of a CharacterBody3D that has a CollisionShape3D child.
 ## Plane coordinates: Vector2 x -> world X, y -> world Z.
 
-## Emitted when the route became blocked and no new route exists.
-signal route_failed
-
 @export var profile: NavigatorProfile
 
 var _core: NavigatorCore
@@ -48,15 +45,11 @@ func start_route(from: Vector2, goal: Vector2, travel_direction: Vector2 = Vecto
 	return _core.start_route(from, goal, _obstacles(), travel_direction, turn_radius)
 
 
-## Advances the route for this tick. Returns guidance (with the corridor), or null (and emits
-## route_failed) when the route became blocked and no new route exists.
+## Advances the route for this tick. Returns guidance (with the corridor), or null when the
+## route became blocked and no new route exists (the caller fails its order).
 func update(dt: float, position: Vector2, travel_direction: Vector2 = Vector2.ZERO,
 		turn_radius: float = 0.0) -> Guidance:
-	var had_route := _core.route != null
-	var guidance := _core.update(dt, position, _obstacles, travel_direction, turn_radius)
-	if guidance == null and had_route:
-		route_failed.emit()
-	return guidance
+	return _core.update(dt, position, _obstacles, travel_direction, turn_radius)
 
 
 func clear_route() -> void:

@@ -31,10 +31,10 @@ func register_ship(ship: ShipBase) -> void:
 	ship.order_failed.connect(func(d: Vector3) -> void: order_failed.emit(ship, d))
 
 
-## Registered ships that still exist.
+## Registered ships that still exist (a copy; changing it does not register or drop ships).
 func get_ships() -> Array[ShipBase]:
 	_ships.assign(_ships.filter(func(s: Variant) -> bool: return is_instance_valid(s)))
-	return _ships
+	return _ships.duplicate()
 
 
 func selected() -> Array[Object]:

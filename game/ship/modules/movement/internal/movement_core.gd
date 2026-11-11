@@ -22,6 +22,8 @@ var give_way_point: Variant = null
 func _init(p: MovementProfile) -> void:
 	assert(p != null and p.turn_rate_curve != null and p.rcs_authority_curve != null,
 			"MovementCore needs a profile with turn_rate_curve and rcs_authority_curve")
+	# Rest manoeuvres and settling rotate the hull at speed 0; a zero rate never finishes them.
+	assert(p.turn_rate_curve.sample(0.0) > 0.0, "turn_rate_curve must be above 0 at speed 0")
 	profile = p
 
 
@@ -78,7 +80,8 @@ func fail_active() -> void:
 
 ## True when the ship is executing a moving order (not settling, not giving way).
 func has_moving_order() -> bool:
-	return give_way_point == null and active != null 			and active.status == MoveExecution.Status.MOVING
+	return give_way_point == null and active != null \
+			and active.status == MoveExecution.Status.MOVING
 
 
 ## True when the next tick uses the traffic gap ahead (an active order still moving).

@@ -61,7 +61,7 @@ func free_distance(direction: Vector2, length: float) -> float:
 	if query == null:
 		return INF
 	var result := _body.get_world_3d().direct_space_state.cast_motion(query)
-	if result.is_empty() or result[0] >= 1.0:
+	if result.is_empty() or result[1] >= 1.0:
 		return INF
 	return result[0] * length
 
